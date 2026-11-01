@@ -5,3 +5,4 @@ finance-app/preview.log
 
 # Capacitor android build
 android/
+.vercel
