@@ -146,20 +146,40 @@ export async function loginUser(params) {
   return signInOrSignUp(params)
 }
 
-// ---------- password reset ----------
-
-export async function resetPassword(email) {
+// ---------- password reset (KEEPS ALL USER DATA INTACT) ----------
+// sendPasswordResetEmail only sends a secure link from Firebase; it never
+// touches or deletes the account or the Firestore data. The user opens the
+// link, chooses a new password and signs back in to the SAME uid — so all
+// previous income/expense records stay exactly where they are.
+export async function sendResetEmail(email) {
   const cleanEmail = normalizeEmail(email)
-  if (!cleanEmail) throw new Error('ابتدا جیمیل خود را وارد کنید.')
+  if (!cleanEmail) throw new Error('برای بازیابی رمز، ابتدا آدرس جیمیل خود را وارد کنید.')
+  if (!isGmail(cleanEmail))
+    throw new Error('فرمت آدرس جیمیل اشتباه است — نشانی باید به شکل name@gmail.com باشد.')
   try {
     await sendPasswordResetEmail(auth, cleanEmail)
+    return true
   } catch (err) {
-    if (err && err.code === 'auth/user-not-found') {
-      throw new Error('این جیمیل هنوز در برنامه حساب ندارد — کافی است یک بار با یک رمز عبور وارد شوید تا حساب شما ساخته شود.')
+    const code = err && err.code
+    switch (code) {
+      case 'auth/invalid-email':
+        throw new Error('فرمت آدرس جیمیل اشتباه است — نشانی باید به شکل name@gmail.com باشد.')
+      case 'auth/user-not-found':
+        throw new Error('این جیمیل هنوز در برنامه حساب ندارد — کافی است یک بار با یک رمز عبور وارد شوید تا حساب شما ساخته شود.')
+      case 'auth/too-many-requests':
+        throw new Error('چند بار پشت سر هم درخواست دادید — چند دقیقه صبر کنید و دوباره امتحان کنید.')
+      case 'auth/network-request-failed':
+        throw new Error('اتصال اینترنتی برقرار نیست — برای ارسال ایمیل به اینترنت نیاز دارید.')
+      case 'auth/configuration-not-found':
+        throw new Error('بازیابی رمز در کنسول Firebase فعال نیست — بخش Authentication → Sign-in method را بررسی کنید.')
+      default:
+        throw new Error(friendlyError(err))
     }
-    throw new Error(friendlyError(err))
   }
 }
+
+// kept for API compatibility with older call sites
+export const resetPassword = sendResetEmail
 
 // ---------- logout ----------
 export async function logout() {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Wallet2, LogIn, Eye, EyeOff, Loader2, ShieldCheck, AtSign } from 'lucide-react'
-import { signInOrSignUp, resetPassword } from '../utils/auth'
+import { signInOrSignUp, sendResetEmail } from '../utils/auth'
 
 export default function AuthGate({ onAuthed }) {
   const [email, setEmail] = useState('')
@@ -10,6 +10,7 @@ export default function AuthGate({ onAuthed }) {
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
   const [resetBusy, setResetBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   // ONE form, TWO fields only: Gmail + password. Smart logic: if the email
   // exists in Firebase we sign in; if it does NOT exist (e.g. it was deleted
@@ -33,7 +34,10 @@ export default function AuthGate({ onAuthed }) {
     }
   }
 
-  // Forgot-password link: sends Firebase's reset email to the typed gmail.
+  // Forgot-password flow: calls Firebase sendPasswordResetEmail through the
+  // dedicated sendResetEmail() helper. It NEVER deletes anything — the user
+  // just gets a secure link in their Gmail to choose a new password and then
+  // signs back in to the same account with all data intact.
   const doReset = async () => {
     setError('')
     setInfo('')
@@ -43,8 +47,11 @@ export default function AuthGate({ onAuthed }) {
     }
     setResetBusy(true)
     try {
-      await resetPassword(email)
-      setInfo('✅ لینک تغییر رمز عبور برای شما ایمیل شد — صندوق جیمیل خود را بررسی کنید.')
+      await sendResetEmail(email)
+      setResetSent(true)
+      setInfo(
+        'لینک بازیابی رمز عبور به جیمیل شما ارسال شد. لطفاً صندوق ورودی (و پوشه اسپم) خود را بررسی کنید.',
+      )
     } catch (err) {
       setError(err.message || 'بازیابی رمز ممکن نشد.')
     } finally {
@@ -148,8 +155,16 @@ export default function AuthGate({ onAuthed }) {
             disabled={resetBusy}
             className="t-faint mt-4 block w-full text-center text-[12px] font-bold underline-offset-4 hover:text-teal-400 hover:underline transition-colors disabled:opacity-60"
           >
-            {resetBusy ? 'در حال ارسال ایمیل…' : '🔑 فراموشی رمز عبور'}
+            {resetBusy
+              ? 'در حال ارسال ایمیل…'
+              : resetSent
+                ? '✅ ایمیل بازیابی ارسال شد — برای ارسال دوباره کلیک کنید'
+                : '🔑 رمز عبورم را فراموش کرده‌ام'}
           </button>
+
+          <p className="t-faint mt-3 text-center text-[11px] font-bold">
+            🔒 با بازیابی رمز، هیچ داده‌ای پاک نمی‌شود — فقط رمز شما عوض می‌شود
+          </p>
 
           <p className="t-faint mt-5 text-center text-[11px] font-bold">
             ☁️ حساب‌ها روی Firebase نگهداری می‌شوند — هر کس با جیمیل خود از هر دستگاهی وارد شود
