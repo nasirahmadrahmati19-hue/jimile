@@ -1,0 +1,470 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   Design tokens — Night (default) & Day themes
+   NEW STYLE: "Neo-Solid" — flat elevated surfaces, crisp
+   borders, soft layered shadows. NO glassmorphism anywhere.
+   ========================================================= */
+:root,
+.theme-dark {
+  --bg-base: #0b1120;
+  --surface-1: #111a2e;      /* card background */
+  --surface-2: #16213a;      /* nested / hover surface */
+  --surface-3: #1d2a49;      /* chips, inputs */
+  --edge: rgba(148, 163, 184, 0.16);       /* hairline border */
+  --edge-strong: rgba(148, 163, 184, 0.3);
+  --shadow-1: 0 1px 2px rgba(2, 6, 23, 0.5), 0 8px 24px -8px rgba(2, 6, 23, 0.55);
+  --shadow-2: 0 2px 4px rgba(2, 6, 23, 0.5), 0 20px 44px -12px rgba(2, 6, 23, 0.65);
+  --text-strong: #f8fafc;
+  --text-body: #dbe4f0;
+  --text-muted: #93a4bd;
+  --text-faint: #64748b;
+  --input-bg: #16213a;
+  --input-focus-bg: #1d2a49;
+  --option-bg: #111a2e;
+  --divider: rgba(148, 163, 184, 0.12);
+  --hover-bg: rgba(148, 163, 184, 0.08);
+  --thumb: rgba(148, 163, 184, 0.25);
+  --thumb-hover: rgba(148, 163, 184, 0.45);
+  --dot: rgba(148, 163, 184, 0.07);
+}
+
+.theme-light {
+  --bg-base: #eef2f8;
+  --surface-1: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef2f7;
+  --edge: rgba(15, 23, 42, 0.09);
+  --edge-strong: rgba(15, 23, 42, 0.16);
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 20px -8px rgba(15, 23, 42, 0.12);
+  --shadow-2: 0 2px 6px rgba(15, 23, 42, 0.07), 0 22px 44px -14px rgba(15, 23, 42, 0.18);
+  --text-strong: #0f172a;
+  --text-body: #26344a;
+  --text-muted: #5b6b83;
+  --text-faint: #8a97ab;
+  --input-bg: #f4f7fb;
+  --input-focus-bg: #ffffff;
+  --option-bg: #ffffff;
+  --divider: rgba(15, 23, 42, 0.08);
+  --hover-bg: rgba(15, 23, 42, 0.045);
+  --thumb: rgba(71, 85, 105, 0.28);
+  --thumb-hover: rgba(71, 85, 105, 0.5);
+  --dot: rgba(15, 23, 42, 0.05);
+}
+
+html {
+  direction: rtl;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply font-vazir antialiased;
+  font-feature-settings: '"ss02"';
+  color: var(--text-body);
+  background-color: var(--bg-base);
+  min-height: 100vh;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* subtle dotted canvas texture — crisp, modern, zero blur */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--dot) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;
+}
+
+body::after { display: none; }
+
+/* ---------- Surfaces (solid, elevated — NOT glass) ---------- */
+.card {
+  @apply rounded-2xl;
+  border: 1px solid var(--edge);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transform: translateZ(0);
+  contain: paint;
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.3s ease;
+}
+
+.card-raised {
+  @apply rounded-2xl;
+  border: 1px solid var(--edge);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  transform: translateZ(0);
+  contain: paint;
+}
+
+.inset-panel {
+  @apply rounded-xl;
+  border: 1px solid var(--edge);
+  background: var(--surface-3);
+}
+
+.tabbar {
+  @apply rounded-2xl;
+  border: 1px solid var(--edge);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+
+.tab-indicator {
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.45);
+}
+
+
+.text-gradient {
+  background: linear-gradient(120deg, #34d399 0%, #22d3ee 45%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.theme-light .text-gradient {
+  background: linear-gradient(120deg, #059669 0%, #0891b2 45%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Theme-aware semantic text colors ---------- */
+.t-strong { color: var(--text-strong); }
+.t-body   { color: var(--text-body); }
+.t-muted  { color: var(--text-muted); }
+.t-faint  { color: var(--text-faint); }
+.hoverable:hover { background: var(--hover-bg); }
+
+/* emerald / rose / amber / indigo accents readable in BOTH themes */
+.acc-emerald { color: #34d399; }
+.theme-light .acc-emerald { color: #047857; }
+.acc-cyan { color: #22d3ee; }
+.theme-light .acc-cyan { color: #0e7490; }
+.font-mono-num { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.acc-rose { color: #fb7185; }
+.theme-light .acc-rose { color: #be123c; }
+.acc-amber { color: #fbbf24; }
+.theme-light .acc-amber { color: #b45309; }
+.acc-indigo { color: #a5b4fc; }
+.theme-light .acc-indigo { color: #4f46e5; }
+.acc-slate { color: var(--text-muted); }
+
+.badge-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.25);
+}
+.theme-light .badge-emerald {
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+  box-shadow: inset 0 0 0 1px rgba(5, 150, 105, 0.25);
+}
+.badge-rose {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.25);
+}
+.theme-light .badge-rose {
+  background: rgba(190, 18, 60, 0.08);
+  color: #be123c;
+  box-shadow: inset 0 0 0 1px rgba(190, 18, 60, 0.2);
+}
+.badge-indigo {
+  background: rgba(99, 102, 241, 0.14);
+  color: #a5b4fc;
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+.theme-light .badge-indigo {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+.badge-amber {
+  background: rgba(245, 158, 11, 0.13);
+  color: #fbbf24;
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.28);
+}
+.theme-light .badge-amber {
+  background: rgba(180, 83, 9, 0.08);
+  color: #b45309;
+  box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.2);
+}
+
+/* icon chips */
+.chip-emerald { background: rgba(16, 185, 129, 0.14); color: #34d399; box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.28); }
+.chip-rose    { background: rgba(244, 63, 94, 0.14);   color: #fb7185; box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.28); }
+.chip-indigo  { background: rgba(99, 102, 241, 0.16);  color: #a5b4fc; box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.3); }
+.chip-amber   { background: rgba(245, 158, 11, 0.14);  color: #fbbf24; box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.28); }
+.theme-light .chip-emerald { background: rgba(5, 150, 105, 0.1);  color: #047857; }
+.theme-light .chip-rose    { background: rgba(190, 18, 60, 0.08); color: #be123c; }
+.theme-light .chip-indigo  { background: rgba(79, 70, 229, 0.08); color: #4f46e5; }
+.theme-light .chip-amber   { background: rgba(180, 83, 9, 0.08);  color: #b45309; }
+
+/* per-category tinted chip (CSS vars set inline from categoryMeta) */
+.cat-chip {
+  background: var(--cat-tint, rgba(148, 163, 184, 0.14));
+  color: var(--cat-text, #cbd5e1);
+  box-shadow: inset 0 0 0 1px var(--cat-ring, rgba(148, 163, 184, 0.25));
+}
+.theme-light .cat-chip {
+  color: var(--cat-text-light, #475569);
+}
+
+/* soft amount pill inside lists */
+.amount-pill-pos { background: rgba(16, 185, 129, 0.12); color: #34d399; box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.22); }
+.amount-pill-neg { background: rgba(244, 63, 94, 0.12);  color: #fb7185; box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.22); }
+.theme-light .amount-pill-pos { background: rgba(5, 150, 105, 0.1);  color: #047857; }
+.theme-light .amount-pill-neg { background: rgba(190, 18, 60, 0.07); color: #be123c; }
+
+/* delete button */
+.btn-delete { color: var(--text-faint); }
+.btn-delete:hover {
+  background: rgba(244, 63, 94, 0.14);
+  color: #fb7185;
+}
+.theme-light .btn-delete:hover {
+  background: rgba(190, 18, 60, 0.08);
+  color: #be123c;
+}
+
+/* edit button */
+.btn-edit { color: var(--text-faint); }
+.btn-edit:hover {
+  background: rgba(99, 102, 241, 0.14);
+  color: #a5b4fc;
+}
+.theme-light .btn-edit:hover {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+}
+
+/* ---------- Form controls ---------- */
+.field-label {
+  @apply block text-[13px] font-bold;
+  color: var(--text-muted);
+}
+
+.field-input {
+  @apply w-full rounded-xl px-4 py-3 font-vazir transition-all duration-200;
+  border: 1px solid var(--edge);
+  background: var(--input-bg);
+  color: var(--text-body);
+  box-shadow: inset 0 1px 2px rgba(2, 6, 23, 0.06);
+}
+.field-input::placeholder {
+  color: var(--text-faint);
+}
+.field-input:focus {
+  outline: none;
+  border-color: #10b981;
+  background: var(--input-focus-bg);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.9rem center;
+  padding-left: 2.4rem;
+}
+
+select.field-input option {
+  background-color: var(--option-bg);
+  color: var(--text-body);
+}
+
+input[type='date'].field-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+.theme-light input[type='date'].field-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.25);
+}
+
+/* ---------- Animations ----------
+   NOTE: only opacity + translateY are animated (compositor-friendly).
+   No blur/filter animation anywhere => zero scroll jitter.        */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- Bottom-sheet modal animations (compositor-only) ---------- */
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 48px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animate-backdrop-in { animation: backdrop-in 0.25s ease both; }
+.animate-sheet-in { animation: sheet-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.stagger > * {
+  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger > *:nth-child(3) { animation-delay: 0.13s; }
+.stagger > *:nth-child(4) { animation-delay: 0.18s; }
+.stagger > *:nth-child(5) { animation-delay: 0.23s; }
+.stagger > *:nth-child(6) { animation-delay: 0.28s; }
+.stagger > *:nth-child(7) { animation-delay: 0.33s; }
+.stagger > *:nth-child(8) { animation-delay: 0.38s; }
+
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%       { transform: translate3d(0, -14px, 0) rotate(3deg); }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.55) 20%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.55) 80%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* glowing progress bars */
+.bar-glow-emerald { box-shadow: 0 0 18px rgba(16, 185, 129, 0.55); }
+.bar-glow-rose    { box-shadow: 0 0 18px rgba(244, 63, 94, 0.5); }
+.theme-light .bar-glow-emerald { box-shadow: 0 0 10px rgba(5, 150, 105, 0.35); }
+.theme-light .bar-glow-rose    { box-shadow: 0 0 10px rgba(190, 18, 60, 0.3); }
+
+/* card hover lift — translateZ keeps it on the GPU, no repaint flicker */
+.card-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  transform: translateZ(0);
+}
+.card-lift:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 18px 50px -12px var(--shadow-1);
+}
+
+/* list track backgrounds */
+.track {
+  background: var(--divider);
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--thumb-hover);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Mobile-first polish ---------- */
+/* larger tap targets on touch devices */
+@media (pointer: coarse) {
+  .field-input,
+  select.field-input,
+  button[role='tab'] {
+    min-height: 46px;
+  }
+  .btn-delete,
+  .btn-edit {
+    min-width: 42px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* no hover lift on touch (avoids sticky-hover artifacts) */
+  .card-lift:hover {
+    transform: translateZ(0);
+    box-shadow: 0 10px 40px -12px var(--shadow-1);
+  }
+}
+
+/* safe-area insets for notched phones */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .animate-sheet-in > :last-child,
+  form {
+    margin-bottom: 0;
+  }
+  #root {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* prevent iOS input zoom: fields are >=16px already; keep it that way */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* ---------- scrollable entry lists (scroll after ~10 items) ---------- */
+.list-scroll {
+  max-height: 78vh; /* roughly the height of 10 entry cards */
+  overflow-y: auto;
+  overscroll-behavior: contain; /* don't jitter/chain the page while scrolling the list */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  padding-inline-start: 4px;
+  padding-inline-end: 8px;
+}
