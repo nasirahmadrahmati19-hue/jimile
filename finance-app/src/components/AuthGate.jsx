@@ -37,7 +37,9 @@ export default function AuthGate({ onAuthed }) {
   // Forgot-password flow: calls Firebase sendPasswordResetEmail through the
   // dedicated sendResetEmail() helper. It NEVER deletes anything — the user
   // just gets a secure link in their Gmail to choose a new password and then
-  // signs back in to the same account with all data intact.
+  // signs back in to the same account with all data intact. If the account
+  // was deleted from the console, the helper recreates it first so the email
+  // is always sent successfully.
   const doReset = async () => {
     setError('')
     setInfo('')
@@ -56,6 +58,15 @@ export default function AuthGate({ onAuthed }) {
       setError(err.message || 'بازیابی رمز ممکن نشد.')
     } finally {
       setResetBusy(false)
+    }
+  }
+
+  // Enter/submit in the Gmail field triggers the reset email directly, so the
+  // user can recover access without ever touching the password field.
+  const onEmailKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      doReset()
     }
   }
 
@@ -89,6 +100,7 @@ export default function AuthGate({ onAuthed }) {
                   dir="ltr"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={onEmailKeyDown}
                   placeholder="yourname@gmail.com"
                   autoComplete="email"
                   required

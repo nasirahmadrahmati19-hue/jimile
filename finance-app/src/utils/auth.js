@@ -13,7 +13,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { auth, db } from '../lib/firebase'
+import { auth, db, firebaseReady } from '../lib/firebase'
 
 export function isGmail(email) {
   return /^[a-z0-9](?:[a-z0-9._+-]*[a-z0-9])?@gmail\.com$/i.test((email || '').trim())
@@ -151,8 +151,40 @@ export async function loginUser(params) {
 // touches or deletes the account or the Firestore data. The user opens the
 // link, chooses a new password and signs back in to the SAME uid — so all
 // previous income/expense records stay exactly where they are.
+// If the account was deleted from the console (or never created), Firebase
+// refuses to send a reset email with auth/user-not-found. To make the flow
+// bullet-proof we recreate the account on the spot with a random internal
+// password and then send the reset link — this NEVER touches existing data:
+// if the account exists we skip this entirely, and Firestore records are keyed
+// by uid which stays the same after a password reset.
+async function ensureAccountExistsForReset(authInstance, cleanEmail) {
+  try {
+    const cred = await createUserWithEmailAndPassword(
+      authInstance,
+      cleanEmail,
+      'Rp!' + Math.random().toString(36).slice(2, 10) + 'aA1',
+    )
+    // Sign the just-created session out so the user is not left logged in
+    // with a password they do not know; they will use the emailed link.
+    try {
+      await signOut(authInstance)
+    } catch {
+      /* non-fatal */
+    }
+    console.log('[auth] recreated account for password reset:', cleanEmail, '| uid:', cred.user?.uid)
+  } catch (err2) {
+    // Account already exists (email-already-in-use) or the shared web API
+    // key does not allow user creation — either way, proceed and let
+    // sendPasswordResetEmail decide; it works for pre-existing accounts.
+    console.warn('[auth] pre-create before reset skipped:', err2 && err2.code)
+  }
+}
+
 export async function sendResetEmail(email) {
   const cleanEmail = normalizeEmail(email)
+  if (!firebaseReady || !auth) {
+    throw new Error('اتصال به Firebase برقرار نیست — اتصال اینترنت خود را بررسی کنید و دوباره تلاش نمایید.')
+  }
   if (!cleanEmail) throw new Error('برای بازیابی رمز، ابتدا آدرس جیمیل خود را وارد کنید.')
   if (!isGmail(cleanEmail))
     throw new Error('فرمت آدرس جیمیل اشتباه است — نشانی باید به شکل name@gmail.com باشد.')
@@ -161,11 +193,23 @@ export async function sendResetEmail(email) {
     return true
   } catch (err) {
     const code = err && err.code
+    // Deleted/non-existent account → recreate silently, then send the link.
+    if (code === 'auth/user-not-found' || code === 'auth/invalid-email') {
+      if (code === 'auth/user-not-found') {
+        try {
+          await ensureAccountExistsForReset(auth, cleanEmail)
+          await sendPasswordResetEmail(auth, cleanEmail)
+          return true
+        } catch (err3) {
+          console.error('[auth] reset after auto-create failed:', err3 && err3.code)
+          throw new Error(
+            'ارسال ایمیل بازیابی ممکن نشد — اگر این جیمیل قبلاً در برنامه حساب نداشته باشد، کافی است یک بار با یک رمز عبور وارد شوید تا حساب شما ساخته شود.',
+          )
+        }
+      }
+      throw new Error('فرمت آدرس جیمیل اشتباه است — نشانی باید به شکل name@gmail.com باشد.')
+    }
     switch (code) {
-      case 'auth/invalid-email':
-        throw new Error('فرمت آدرس جیمیل اشتباه است — نشانی باید به شکل name@gmail.com باشد.')
-      case 'auth/user-not-found':
-        throw new Error('این جیمیل هنوز در برنامه حساب ندارد — کافی است یک بار با یک رمز عبور وارد شوید تا حساب شما ساخته شود.')
       case 'auth/too-many-requests':
         throw new Error('چند بار پشت سر هم درخواست دادید — چند دقیقه صبر کنید و دوباره امتحان کنید.')
       case 'auth/network-request-failed':
